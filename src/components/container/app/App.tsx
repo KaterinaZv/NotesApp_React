@@ -15,15 +15,23 @@ class App extends React.Component<{}, AppState> {
     notes: [],
   }
 
-  createNote = (): void => {
-    this.setState(({ notes }) => {
-      const previousNotes = [...notes];
-      previousNotes.unshift(createEmptyNote());
+  componentDidMount() {
+    const notesList = JSON.parse(localStorage.getItem('notes') || '[]');
+    this.setState({ notes: notesList })
+  }
 
-      return ({
-        notes: previousNotes,
-      });
+  saveNotes = (notes: Note[]) => {
+    this.setState({
+      notes
     })
+    localStorage.setItem('notes', JSON.stringify(this.state.notes));
+  }
+
+  createNote = (): void => {
+    const previousNotes = [...this.state.notes];
+    previousNotes.unshift(createEmptyNote());
+
+    this.saveNotes(previousNotes);
   }
 
   onItemClick = (selectedNote: Note) => {
@@ -43,12 +51,16 @@ class App extends React.Component<{}, AppState> {
       notes,
       selectedNote: isCurrentNoteDeleted ? undefined : this.state.selectedNote
     })
+
+    localStorage.setItem('notes', JSON.stringify(notes));
   }
 
-  onNoteChange = (input: string) => this.setState(({ selectedNote, notes }) => ({
-    selectedNote: { ...selectedNote as Note, text: input },
-    notes: notes.map((note) => selectedNote && note.id === selectedNote.id ? ({ ...note, text: input }) : note)
-  }));
+  onNoteChange = (input: string) => {
+    this.setState(({ selectedNote, notes }) => ({
+      selectedNote: { ...selectedNote as Note, text: input },
+      notes: notes.map((note) => selectedNote && note.id === selectedNote.id ? ({ ...note, text: input }) : note)
+    }));
+  }
 
 
   render() {
